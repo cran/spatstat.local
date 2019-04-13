@@ -1,10 +1,20 @@
-head	2.15;
+head	2.17;
 access;
 symbols;
 locks
-	adrian:2.15; strict;
+	adrian:2.17; strict;
 comment	@# @;
 
+
+2.17
+date	2019.04.13.15.37.08;	author adrian;	state Exp;
+branches;
+next	2.16;
+
+2.16
+date	2019.04.13.15.12.07;	author adrian;	state Exp;
+branches;
+next	2.15;
 
 2.15
 date	2016.10.19.08.37.16;	author adrian;	state Exp;
@@ -186,9 +196,9 @@ desc
 @@
 
 
-2.15
+2.17
 log
-@added predict and fitted methods.
+@Summary: removed 'printStatusList' which is now in spatstat
 @
 text
 @#
@@ -198,7 +208,7 @@ text
 # and local Palm likelihood
 # for cluster/Cox processes.
 #
-#  $Revision: 2.14 $ $Date: 2013/10/31 10:59:06 $
+#  $Revision: 2.16 $ $Date: 2019/04/13 15:12:07 $
 #
 
 loccit <- local({
@@ -306,6 +316,7 @@ loccit <- local({
   if(verbose) cat("Fitting homogeneous cluster model ... ")
   homclusfit <- kppm(X,
                      trend=trend,
+                     clusters=clusters,
                      covariates=covariates,
                      covfunargs=covfunargs,
                      use.gam=use.gam,
@@ -654,18 +665,6 @@ bw.loccit <- function(...,
   timed(result, starttime=starttime)
 }
 
-psib <- function(object) UseMethod("psib")
-
-psib.kppm <- function(object) {
-  clus <- object$clusters
-  info <- spatstatClusterModelInfo(clus)
-  if(!info$isPCP)
-    stop("The model is not a cluster process")
-  modpar <- object$modelpar
-  g <- pcfmodel(object)
-  p <- 1 - 1/g(0)
-  return(p)
-}
 
 psib.loccit <- function(object) {
   clus <- object$homclusfit$clusters
@@ -700,6 +699,20 @@ accumulateStatusList <- function(x, stats=NULL, stoponerror=TRUE) {
   return(stats)
 }
 
+@
+
+
+2.16
+log
+@Summary: bug fix thanks to Nicoletta D'Angelo
+@
+text
+@d8 1
+a8 1
+#  $Revision: 2.15 $ $Date: 2016/10/19 08:37:16 $
+a496 15
+}
+
 printStatusList <- function(stats) {
   with(stats,
        {
@@ -713,8 +726,31 @@ printStatusList <- function(stats) {
          }
        })
   invisible(NULL)
-}
+@
 
+
+2.15
+log
+@added predict and fitted methods.
+@
+text
+@d8 1
+a8 1
+#  $Revision: 2.14 $ $Date: 2013/10/31 10:59:06 $
+d116 1
+a464 12
+psib <- function(object) UseMethod("psib")
+
+psib.kppm <- function(object) {
+  clus <- object$clusters
+  info <- spatstatClusterModelInfo(clus)
+  if(!info$isPCP)
+    stop("The model is not a cluster process")
+  modpar <- object$modelpar
+  g <- pcfmodel(object)
+  p <- 1 - 1/g(0)
+  return(p)
+}
 @
 
 
