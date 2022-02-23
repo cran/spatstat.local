@@ -1,6 +1,6 @@
-7f7c54d51573b25ad568ba5588a10c92 *DESCRIPTION
-58dd0ca3f8bec1eef7b0dba1d14f66c4 *NAMESPACE
-9bc1b67b83f2e91ae78750bc7215994e *NEWS
+ea3a6bcd353810cb172619ff4269df57 *DESCRIPTION
+8204eb2d23943ed7636f9137cd35625f *NAMESPACE
+e159aca22a1bb2c8914a9c6efc12c126 *NEWS
 49d37a1aef6130ce58e454ab4545c5f4 *R/First.R
 8bf509b9730053c47f3f6e2fa95f33bd *R/RCS/First.R,v
 48ae30c553b83c2ee19fa5afdbeb3cdf *R/RCS/fft.R,v
@@ -32,7 +32,7 @@ d8c806d92812cfa9f822baeb72c0c23c *man/locmincon.Rd
 ed942cea13265ff61cb6d342d47695bc *man/locppm.Rd
 fab0a48f91eb922c3761e7c1a77e1bbb *man/macros/defns.Rd
 fd4e70086717bfe67b9e78c2941e29e3 *man/methods.locmincon.Rd
-f35566918a3f6eb063e008d2fd9b5e83 *man/methods.locppm.Rd
+081908c0a67e06fc168af8a3f4c7a6a7 *man/methods.locppm.Rd
 83fc9da80354a2eb6ab53764d606f7a8 *man/plot.loccit.Rd
 821bc21ae74ee2bb9da93044f1736d52 *man/plot.locmincon.Rd
 b2f3d4ef194d24eafa17b8714a910b96 *man/plot.locppm.Rd
