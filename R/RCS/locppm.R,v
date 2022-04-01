@@ -1,10 +1,20 @@
-head	1.183;
+head	1.185;
 access;
 symbols;
 locks
-	adrian:1.183; strict;
+	adrian:1.185; strict;
 comment	@# @;
 
+
+1.185
+date	2022.03.22.08.02.10;	author adrian;	state Exp;
+branches;
+next	1.184;
+
+1.184
+date	2022.03.22.06.49.52;	author adrian;	state Exp;
+branches;
+next	1.183;
 
 1.183
 date	2016.10.11.10.55.06;	author adrian;	state Exp;
@@ -926,9 +936,9 @@ desc
 @@
 
 
-1.183
+1.185
 log
-@retains all quadrature points!
+@Summary: bug fix
 @
 text
 @#
@@ -936,7 +946,7 @@ text
 #
 # Local (pseudo)likelihood for point processes
 #
-#  $Revision: 1.182 $ $Date: 2016/10/11 10:26:06 $
+#  $Revision: 1.184 $ $Date: 2022/03/22 06:49:52 $
 #
 
 locppm <- function(..., sigma=NULL, f = 1/4,
@@ -1609,6 +1619,7 @@ vcovlocEngine <- function(internals, localwt=NULL,
   with(internals, {
     okX <- ok[Z]
     ncoef <- length(hom.coef)
+    use.coef <- new.coef %orifnull% hom.coef
     # Conditional intensity using the locally-fitted coefficients 'new.coef'
     if(!is.null(new.coef)) 
       lambda <- as.vector(lambda * exp(mom %*% (new.coef - hom.coef)))
@@ -1629,17 +1640,21 @@ vcovlocEngine <- function(internals, localwt=NULL,
     if(ispois) {
       A2 <- A3 <- B2 <- B3 <- matrix(0, ncoef, ncoef)
     } else {
-      # Require components 'lamdel' and 'momdel'
-      #   lamdel[i,j]   = lambda(X[i] | X[-j]) = lambda(X[i] | X[-c(i,j)])
-      #   momdel[ ,i,j] = h(X[i] | X[-j])      = h(X[i] | X[-c(i,j)])
-      # adjust lamdel for new coefficient
-      if(!is.null(new.coef))
-        lamdel <- lamdel * exp(tensor::tensor(new.coef - hom.coef, momdel, 1, 1))
-      #   pairweight[i,j] = lamdel[i,j]/lambda[i] - 1 
-      pairweight <- lamdel / lambda[Z] - 1
-      #   momdelL[ , i, j] = localwt[i] * momdel[ , i, j]
+      ## adjust variance terms using locally fitted model and local weight
       locwtX <- localwt[Z]
-      momdelL <- momdel * rep(locwtX, rep(ncoef, nX))
+      ##   lamdel[i,j]   = lambda(X[i] | X[-j]) = lambda(X[i] | X[-c(i,j)])
+      ##   momdel[ ,i,j] = h(X[i] | X[-j])      = h(X[i] | X[-c(i,j)])
+      ##   pairweight[i,j] = lamdel[i,j]/lambda[i] - 1
+      sparse <- inherits(ddS, "sparse3Darray")
+      if(sparse) {
+        pairweight <- expm1(tensor1x1(-use.coef, ddS))
+        ## momdelL[ , i, j] = localwt[i] * momdel[ , i, j]
+        momdelL <- momdel * mapSparseEntries(momdel, margin=2, locwtX, conform=TRUE, across=1)
+      } else {
+        pairweight <- expm1(tensor::tensor(-use.coef, ddS, 1, 1))
+        ## momdelL[ , i, j] = localwt[i] * momdel[ , i, j]
+        momdelL <- momdel * rep(locwtX, rep(ncoef, nX))
+      }
       # now compute sum_{i,j} for i != j
       # pairweight[i,j] * outer(momdelL[,i,j], momdelL[,j,i])
       # for data points that contributed to the pseudolikelihood
@@ -1648,14 +1663,24 @@ vcovlocEngine <- function(internals, localwt=NULL,
       A2 <- sumsymouter(momdelL[, okX, okX], w=pwXok)
       if(bananas)
         B2 <- sumsymouter( momdel[, okX, okX], w=locwtXok * pwXok)
-      # locally-weighted model matrix for data only
+      ## locally-weighted model matrix for data only
       momLX <- momL[Z, , drop=FALSE]
-      # deltamomL[ ,i,j] = momLX[j,] - momdelL[,j,i]
-      deltamomL <- aperm(rep(t(momLX), nX) - momdelL, c(1, 3, 2))
+      ## deltamomL[ ,i,j] = momLX[j,] - momdelL[,j,i]
+      if(sparse) {
+        momLXT <- mapSparseEntries(momdelL, 1, t(momLX), conform=TRUE, across=2)
+      } else {
+        momLXT <- array(t(momLX), dim=dim(momdelL))
+      }
+      deltamomL <- aperm(momLXT - momdelL, c(1, 3, 2))
       A3 <- sumsymouter(deltamomL[, okX, okX])
       if(bananas) {
         momX  <- mom[Z, , drop=FALSE]
-        deltamom <- aperm(rep(t(momX), nX) - momdel, c(1, 3, 2))
+        if(sparse) {
+          momXT <- mapSparseEntries(momdel, 1, t(momX), conform=TRUE, across=2)
+        } else {
+          momXT <- array(t(momX), dim=dim(momdel))
+        }
+        deltamom <- aperm(momXT - momdel, c(1, 3, 2))
         nXok <- sum(okX)
         locwtXokMat <- matrix(locwtXok, nXok, nXok)
         B3 <- sumsymouter(deltamom[, okX, okX], w=locwtXokMat)
@@ -1905,21 +1930,28 @@ predict.locppm <- function(object, ...,
   # minimal implementation
   trap.extra.arguments(...)
   type <- match.arg(type)
+  locations.given <- !is.null(locations)
   # Extract homogeneous/template model
   homfit <- as.ppm(object)
   # Fitted local coefficients (could be NULL)
   coefs <- coef(object, what="local")
   # Prediction locations
-  if(is.null(locations)) {
-    # Use locations of fitted local coefficients
+  if(!locations.given) {
+    # Use sample points where fitted local coefficients were computed
     if(is.null(coefs)) stop("Unable to determine locations for prediction")
     locations <- unmark(coefs)
   } else stopifnot(is.ppp(locations))
   # Local coefficients
+  index <- NULL
   if(is.null(new.coef)) {
      # Extract local coefficients 
     if(is.null(coefs)) stop("Object does not include any fitted coefficients")
     coefmat <- marks(coefs)
+    if(locations.given) {
+      #' extract coefficient at nearest sample point
+      map <- nncross(locations, as.ppp(coefs), what="which")
+      coefmat <- coefmat[map, , drop=FALSE]
+    }
   } else {
     # New values for local coefficients
     p <- length(coef(as.ppm(object)))
@@ -1956,12 +1988,15 @@ predict.locppm <- function(object, ...,
            })
   }
   # compute
-  values <- locppmPredict(homfit, coefmat, type=type, precomputed=precomputed)
+  values <- locppmPredict(homfit, coefmat, type=type,
+                          locations=locations, precomputed=precomputed)
+  if(locations.given) return(values)
   return(ssf(locations, values))
 }
 
 locppmPredict <- function(homfit, coefs,
                           type = c("cif", "trend", "intensity"),
+                          locations = NULL,
                           precomputed=NULL, details=FALSE,
                           index = NULL) {
   stopifnot(is.ppm(homfit))
@@ -1970,14 +2005,20 @@ locppmPredict <- function(homfit, coefs,
   # Start by computing fitted conditional intensity of homogeneous model
   # This ensures correct handling of offsets etc
   coef0   <- precomputed$hom.coef %orifnull%  coef(homfit)
-  mom     <- precomputed$mom      %orifnull%  model.matrix(homfit)
+  mom     <- precomputed$mom %orifnull% 
+             (if(is.null(locations)) model.matrix(homfit) else
+              sample.imagelist(model.images(homfit), locations))
   switch(type,
          cif = {
-           result0 <- precomputed$lambda %orifnull% fitted(homfit)
+           result0 <- precomputed$lambda %orifnull%
+                      (if(is.null(locations)) fitted(homfit) else
+                       predict(homfit, locations=locations))
          },
          trend = ,
          intensity = {
-           result0 <- precomputed$trend %orifnull% fitted(homfit, type="trend")
+           result0 <- precomputed$trend %orifnull%
+                      (if(is.null(locations)) fitted(homfit, type="trend") else
+                       predict(homfit, type="trend", locations=locations))
          })
   if(!is.null(index)) {
     ## restrict to subset of quadrature points U[index]
@@ -2364,7 +2405,7 @@ homtestmap <-  function(object, ...,
     # compute directly (slower...)
     internals <- getvcinternals(homfit, verbose=verbose)
     # extract quadrature points used to fit model
-    Q    <- quad.ppm(homfit, drop=TRUE)
+    Q    <- quad.ppm(homfit, drop=FALSE)
     w    <- w.quad(Q)
     Z    <- is.data(Q)
     U    <- union.quad(Q)
@@ -2373,9 +2414,10 @@ homtestmap <-  function(object, ...,
     Ux <- U$x
     Uy <- U$y
     ok <- getglmsubset(homfit)
-    suf <- model.matrix(homfit)[ok, , drop=FALSE]
+#    suf <- model.matrix(homfit)[ok, , drop=FALSE]
+    suf <- model.matrix(homfit)
     # fitted intensity of homogeneous model
-    lam <- fitted(homfit, drop=TRUE, new.coef=theta0)
+    lam <- fitted(homfit, drop=FALSE, new.coef=theta0)
     # increments of residual measure of homogeneous fit
     homresid <- Z - lam * w
     #
@@ -3096,6 +3138,98 @@ bw.locppm <- function(...,
   timed(result, starttime=starttime)
 }
 
+@
+
+
+1.184
+log
+@Summary: fix a variance calculation
+@
+text
+@d6 1
+a6 1
+#  $Revision: 1.183 $ $Date: 2016/10/11 10:55:06 $
+d679 1
+d700 10
+a709 13
+      # WAS: ...........................................
+      # Require components 'lamdel' and 'momdel'
+      #   lamdel[i,j]   = lambda(X[i] | X[-j]) = lambda(X[i] | X[-c(i,j)])
+      #   momdel[ ,i,j] = h(X[i] | X[-j])      = h(X[i] | X[-c(i,j)])
+      # adjust lamdel for new coefficient
+      # if(!is.null(new.coef))
+      #  lamdel <- lamdel * exp(tensor::tensor(new.coef - hom.coef, momdel, 1, 1))
+      #   pairweight[i,j] = lamdel[i,j]/lambda[i] - 1 
+      # pairweight <- lamdel / lambda[Z] - 1
+      # .....................................................
+      # adjust pairweights for new coefficient
+      if(inherits(ddS, "sparse3Darray")) {
+        pairweight <- expm1(tensor1x1(-new.coef, ddS))
+d711 3
+a713 1
+        pairweight <- expm1(tensor::tensor(-new.coef, ddS, 1, 1))
+a714 3
+      #   momdelL[ , i, j] = localwt[i] * momdel[ , i, j]
+      locwtX <- localwt[Z]
+      momdelL <- momdel * rep(locwtX, rep(ncoef, nX))
+d723 1
+a723 1
+      # locally-weighted model matrix for data only
+d725 7
+a731 2
+      # deltamomL[ ,i,j] = momLX[j,] - momdelL[,j,i]
+      deltamomL <- aperm(rep(t(momLX), nX) - momdelL, c(1, 3, 2))
+d735 6
+a740 1
+        deltamom <- aperm(rep(t(momX), nX) - momdel, c(1, 3, 2))
+@
+
+
+1.183
+log
+@retains all quadrature points!
+@
+text
+@d6 1
+a6 1
+#  $Revision: 1.182 $ $Date: 2016/10/11 10:26:06 $
+d699 1
+d704 2
+a705 2
+      if(!is.null(new.coef))
+        lamdel <- lamdel * exp(tensor::tensor(new.coef - hom.coef, momdel, 1, 1))
+d707 8
+a714 1
+      pairweight <- lamdel / lambda[Z] - 1
+d983 1
+d989 2
+a990 2
+  if(is.null(locations)) {
+    # Use locations of fitted local coefficients
+d995 1
+d1000 5
+d1041 3
+a1043 1
+  values <- locppmPredict(homfit, coefmat, type=type, precomputed=precomputed)
+d1049 1
+d1058 3
+a1060 1
+  mom     <- precomputed$mom      %orifnull%  model.matrix(homfit)
+d1063 3
+a1065 1
+           result0 <- precomputed$lambda %orifnull% fitted(homfit)
+d1069 3
+a1071 1
+           result0 <- precomputed$trend %orifnull% fitted(homfit, type="trend")
+d1458 1
+a1458 1
+    Q    <- quad.ppm(homfit, drop=TRUE)
+d1467 2
+a1468 1
+    suf <- model.matrix(homfit)[ok, , drop=FALSE]
+d1470 1
+a1470 1
+    lam <- fitted(homfit, drop=TRUE, new.coef=theta0)
 @
 
 
