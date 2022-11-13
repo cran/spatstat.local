@@ -18,7 +18,7 @@
     Smoothing bandwidth.
   }
   \item{\dots}{
-    Additional arguments passed to \code{\link[spatstat.core]{Smooth.ppp}}
+    Additional arguments passed to \code{\link[spatstat.explore]{Smooth.ppp}}
     controlling the smoothing and the pixel resolution.
   }
 }
@@ -37,16 +37,14 @@
 \references{
   \localpaper
 
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+  \baddrubaturnbook
 }
 \author{
   \adrian.
 }
 \seealso{
   \code{\link{locmincon}},
-  \code{\link[spatstat.core]{Smooth.ppp}}
+  \code{\link[spatstat.explore]{Smooth.ppp}}
 }
 \examples{
    fit <- locmincon(redwood)

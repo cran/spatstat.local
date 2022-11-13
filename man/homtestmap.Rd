@@ -144,16 +144,14 @@ homtestmap(object, \dots,
   
   For \code{homtestmap} and \code{update.homtestmap},
   a spatially-sampled function object (class \code{"ssf"}; see
-  \code{\link[spatstat.core]{ssf}}).
+  \code{\link[spatstat.explore]{ssf}}).
   This object also belongs to the special class
   \code{"homtestmap"} which has a print method.
 }
 \references{
   \localpaper
 
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+  \baddrubaturnbook
 }
 \author{
   \adrian.

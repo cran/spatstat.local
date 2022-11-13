@@ -16,7 +16,7 @@ bw.locppm(...,
 }
 \arguments{
   \item{\dots}{
-    Arguments passed to \code{\link[spatstat.core]{ppm}} to fit the homogeneous
+    Arguments passed to \code{\link[spatstat.model]{ppm}} to fit the homogeneous
     version of the model.
   }
   \item{method}{
@@ -72,10 +72,8 @@ bw.locppm(...,
 }
 \references{
   \localpaper
-  
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+
+  \baddrubaturnbook
 }
 \author{
   \adrian.

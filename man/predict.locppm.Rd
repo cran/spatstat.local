@@ -61,14 +61,12 @@
   For \code{fitted.locppm}, a numeric vector.
 
   For \code{predict.locppm}, an object of class \code{"ssf"}
-  as described in \code{\link[spatstat.core]{ssf}}.
+  as described in \code{\link[spatstat.explore]{ssf}}.
 }
 \references{
   \localpaper
 
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+  \baddrubaturnbook
 }
 \author{
   \adrian.

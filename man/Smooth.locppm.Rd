@@ -16,7 +16,7 @@
     \code{"locppm"}). 
   }
   \item{\dots}{
-    Arguments passed to \code{\link[spatstat.core]{Smooth.ppp}}
+    Arguments passed to \code{\link[spatstat.explore]{Smooth.ppp}}
     to control the smoothing.
   }
   \item{what}{
@@ -26,7 +26,7 @@
 }
 \details{
   This function extracts the selected quantity from the fitted object
-  and spatially smooths it using \code{\link[spatstat.core]{Smooth.ppp}}.
+  and spatially smooths it using \code{\link[spatstat.explore]{Smooth.ppp}}.
   The result is a pixel image or a list of pixel images.
 }
 \value{
@@ -34,17 +34,15 @@
 }
 \references{
   \localpaper
-  
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+
+  \baddrubaturnbook
 }
 \author{
   \adrian.
 }
 \seealso{
   \code{\link{locppm}},
-  \code{\link[spatstat.core]{Smooth.ppp}}
+  \code{\link[spatstat.explore]{Smooth.ppp}}
 }
 \examples{
   fit <- locppm(cells, sigma=0.1, use.fft=TRUE)

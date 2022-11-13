@@ -15,7 +15,7 @@ bw.loccit(..., use.fft=TRUE,
 }
 \arguments{
   \item{\dots}{
-    Arguments passed to \code{\link[spatstat.core]{kppm}} to fit the homogeneous
+    Arguments passed to \code{\link[spatstat.model]{kppm}} to fit the homogeneous
     version of the model.
   }
   \item{use.fft}{
@@ -62,9 +62,7 @@ bw.loccit(..., use.fft=TRUE,
 \references{
   \localpaper
 
-  Baddeley, A., Rubak, E. and Turner, R. (2015)
-  \emph{Spatial Point Patterns: Methodology and Applications with R}.
-  Chapman and Hall/CRC Press.
+  \baddrubaturnbook
 }
 \author{
   \adrian.
