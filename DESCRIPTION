@@ -1,13 +1,13 @@
 Package: spatstat.local
 Type: Package
 Title: Extension to 'spatstat' for Local Composite Likelihood
-Version: 5.0-1
-Date: 2022-11-12
-Depends: R (>= 3.5.0), spatstat.data (>= 3.0), spatstat.sparse (>=
-        3.0), spatstat.geom (>= 3.0), spatstat.random (>= 3.0),
-        spatstat.explore, spatstat.model (>= 3.0), spatstat (>= 3.0),
-        stats, graphics
-Imports: tensor, spatstat.utils (>= 3.0)
+Version: 5.1-0
+Date: 2024-07-11
+Depends: R (>= 3.5.0), spatstat.data (>= 3.1-2), spatstat.univar (>=
+        3.0), spatstat.sparse (>= 3.1), spatstat.geom (>= 3.3),
+        spatstat.random (>= 3.3), spatstat.explore (>= 3.3),
+        spatstat.model (>= 3.3), spatstat (>= 3.1), stats, graphics
+Imports: tensor, spatstat.utils (>= 3.0-5)
 Authors@R: c(person("Adrian", "Baddeley", 
                     role = c("aut", "cre"),
        	            email = "Adrian.Baddeley@curtin.edu.au"))
@@ -19,7 +19,7 @@ Description: Extension to the 'spatstat' package, enabling the user
 License: GPL (>= 2)
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2022-11-12 10:13:24 UTC; adrian
+Packaged: 2024-07-11 01:36:05 UTC; adrian
 Author: Adrian Baddeley [aut, cre]
 Repository: CRAN
-Date/Publication: 2022-11-13 05:40:02 UTC
+Date/Publication: 2024-07-19 09:00:02 UTC
